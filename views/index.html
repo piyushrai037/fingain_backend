@@ -4,93 +4,139 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Form Submissions</title>
-    <<style>
-    /* styles.css */
-
-body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f9;
-    margin: 0;
-    padding: 20px;
-}
-
-h1 {
-    text-align: center;
-    color: #333;
-    margin-bottom: 20px;
-}
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 0 auto;
-    background-color: #fff;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
-
-table, th, td {
-    border: 1px solid #ddd;
-}
-
-th, td {
-    padding: 12px;
-    text-align: left;
-}
-
-th {
-    background-color: #4CAF50;
-    color: white;
-}
-
-tr:nth-child(even) {
-    background-color: #f2f2f2;
-}
-
-tr:hover {
-    background-color: #ddd;
-}
-
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .search-bar {
+            transition: all 0.3s ease-in-out;
+        }
+        .search-bar:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px #4CAF50;
+        }
     </style>
 </head>
-<body>
-    <h1>Form Submissions</h1>
-    <table border="1">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Phone</th>
-                <th>Email</th>
-                <th>City</th>
-                <th>Demat Account</th>
-                <th>Segment</th>
-                <th>Investment</th>
-            </tr>
-        </thead>
-        <tbody id="form-data">
-            <!-- Form data will be injected here -->
-        </tbody>
-    </table>
+<body class="bg-gray-100 p-6">
+    <div class="max-w-5xl mx-auto">
+        <h1 class="text-3xl font-bold text-center mb-6 text-gray-800">Form Submissions</h1>
+
+        <!-- Search and Filter -->
+        <div class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between">
+            <div class="relative w-full md:w-80">
+                <input type="text" id="search" placeholder="Search..." class="search-bar border border-gray-300 rounded-lg py-2 px-4 pr-12 w-full" />
+                <button id="clear" class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Table Container -->
+        <div class="overflow-x-auto">
+            <table class="min-w-full bg-white border border-gray-300 rounded-lg shadow-md">
+                <thead>
+                    <tr class="w-full bg-green-600 text-white">
+                        <th class="py-3 px-4 text-left">Name</th>
+                        <th class="py-3 px-4 text-left">Phone</th>
+                        <th class="py-3 px-4 text-left">Email</th>
+                        <th class="py-3 px-4 text-left">City</th>
+                        <th class="py-3 px-4 text-left">Demat Account</th>
+                        <th class="py-3 px-4 text-left">Segment</th>
+                        <th class="py-3 px-4 text-left">Investment</th>
+                        <th class="py-3 px-4 text-left">Date</th>
+                    </tr>
+                </thead>
+                <tbody id="form-data" class="text-gray-700">
+                    <!-- Form data will be injected here -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="mt-4 flex justify-center">
+            <nav class="flex rounded-md shadow-sm">
+                <button id="prevPage" class="px-4 py-2 bg-green-600 text-white rounded-l-md hover:bg-green-700 disabled:bg-gray-400" disabled>Previous</button>
+                <button id="nextPage" class="px-4 py-2 bg-green-600 text-white rounded-r-md hover:bg-green-700">Next</button>
+            </nav>
+        </div>
+    </div>
+
     <script>
+        const ITEMS_PER_PAGE = 10; // Number of items per page
+        let currentPage = 1;
+        let originalData = [];
+        let filteredData = [];
+
         // Fetch data from the server and inject into the table
         fetch('/get-forms')
             .then(response => response.json())
-            .then(data => {
-                const tableBody = document.getElementById('form-data');
-                data.forEach(form => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${form.name}</td>
-                        <td>${form.phone}</td>
-                        <td>${form.email}</td>
-                        <td>${form.city}</td>
-                        <td>${form.dematAccount}</td>
-                        <td>${form.segment}</td>
-                        <td>${form.invest}</td>
-                        <td>${new Date(form.createdAt).toLocaleString()}</td>
-                    `;
-                    tableBody.appendChild(row);
-                });
+            .then(fetchedData => {
+                originalData = fetchedData;
+                filteredData = fetchedData; // Initialize filtered data
+                renderTable();
+                updatePagination();
             });
+
+        function renderTable() {
+            const tableBody = document.getElementById('form-data');
+            tableBody.innerHTML = '';
+
+            const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+            const endIndex = startIndex + ITEMS_PER_PAGE;
+            const paginatedData = filteredData.slice(startIndex, endIndex);
+
+            paginatedData.forEach(form => {
+                const row = document.createElement('tr');
+                row.className = 'border-b hover:bg-gray-100';
+                row.innerHTML = `
+                    <td class="py-3 px-4">${form.name}</td>
+                    <td class="py-3 px-4">${form.phone}</td>
+                    <td class="py-3 px-4">${form.email}</td>
+                    <td class="py-3 px-4">${form.city}</td>
+                    <td class="py-3 px-4">${form.dematAccount}</td>
+                    <td class="py-3 px-4">${form.segment}</td>
+                    <td class="py-3 px-4">${form.invest}</td>
+                    <td class="py-3 px-4">${new Date(form.createdAt).toLocaleString()}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        function updatePagination() {
+            document.getElementById('prevPage').disabled = currentPage === 1;
+            document.getElementById('nextPage').disabled = currentPage * ITEMS_PER_PAGE >= filteredData.length;
+        }
+
+        document.getElementById('nextPage').addEventListener('click', () => {
+            if (currentPage * ITEMS_PER_PAGE < filteredData.length) {
+                currentPage++;
+                renderTable();
+                updatePagination();
+            }
+        });
+
+        document.getElementById('prevPage').addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                renderTable();
+                updatePagination();
+            }
+        });
+
+        document.getElementById('search').addEventListener('input', function () {
+            const query = this.value.toLowerCase();
+            filteredData = originalData.filter(form => 
+                Object.values(form).some(value => value.toString().toLowerCase().includes(query))
+            );
+            currentPage = 1; // Reset to the first page
+            renderTable();
+            updatePagination();
+        });
+
+        document.getElementById('clear').addEventListener('click', () => {
+            document.getElementById('search').value = '';
+            document.getElementById('search').dispatchEvent(new Event('input'));
+        });
     </script>
 </body>
 </html>
