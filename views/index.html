@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Submissions</title>
+    <<style>
+    /* styles.css */
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f9;
+    margin: 0;
+    padding: 20px;
+}
+
+h1 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0 auto;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+table, th, td {
+    border: 1px solid #ddd;
+}
+
+th, td {
+    padding: 12px;
+    text-align: left;
+}
+
+th {
+    background-color: #4CAF50;
+    color: white;
+}
+
+tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+tr:hover {
+    background-color: #ddd;
+}
+
+    </style>
+</head>
+<body>
+    <h1>Form Submissions</h1>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Email</th>
+                <th>City</th>
+                <th>Demat Account</th>
+                <th>Segment</th>
+                <th>Investment</th>
+            </tr>
+        </thead>
+        <tbody id="form-data">
+            <!-- Form data will be injected here -->
+        </tbody>
+    </table>
+    <script>
+        // Fetch data from the server and inject into the table
+        fetch('/get-forms')
+            .then(response => response.json())
+            .then(data => {
+                const tableBody = document.getElementById('form-data');
+                data.forEach(form => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${form.name}</td>
+                        <td>${form.phone}</td>
+                        <td>${form.email}</td>
+                        <td>${form.city}</td>
+                        <td>${form.dematAccount}</td>
+                        <td>${form.segment}</td>
+                        <td>${form.invest}</td>
+                        <td>${new Date(form.createdAt).toLocaleString()}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            });
+    </script>
+</body>
+</html>

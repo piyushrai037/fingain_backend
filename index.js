@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const nodemailer = require('nodemailer');
+const path = require('path'); // Import the path module
 require('dotenv').config();
 
 const Form = require('./models/Form');
@@ -12,6 +13,9 @@ const app = express();
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
+
+// Serve static files from the 'public' directory
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Connect to MongoDB Atlas
 mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -55,6 +59,24 @@ app.post('/submit-form', async (req, res) => {
     } catch (err) {
         res.status(500).send({ message: 'Error saving form data' });
     }
+});
+
+// API to get all form submissions
+app.get('/get-forms', async (req, res) => {
+    try {
+        // Fetch all form data from MongoDB
+        const forms = await Form.find();
+        
+        // Send the form data as a response
+        res.status(200).send(forms);
+    } catch (err) {
+        res.status(500).send({ message: 'Error retrieving form data' });
+    }
+});
+
+// Route to serve HTML file
+app.get('/forms', (req, res) => {
+    res.sendFile(path.join(__dirname, 'views', 'index.html'));
 });
 
 // Start the server
