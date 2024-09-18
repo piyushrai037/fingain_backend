@@ -71,11 +71,15 @@
         fetch('/get-forms')
             .then(response => response.json())
             .then(fetchedData => {
-                originalData = fetchedData;
-                filteredData = fetchedData; // Initialize filtered data
+                originalData = sortData(fetchedData);
+                filteredData = [...originalData]; // Initialize filtered data
                 renderTable();
                 updatePagination();
             });
+
+        function sortData(data) {
+            return data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        }
 
         function renderTable() {
             const tableBody = document.getElementById('form-data');
